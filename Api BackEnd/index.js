@@ -32,8 +32,196 @@ mongoose.connect(
 
 
 ///***********************ESQUEMA DE PRODUCTOS************************
+     const productosSchema = new mongoose.Schema({
+        codigo_barras:{type:String,required:false,trim:true,maxlength:30},
+        nombre:{type:String,required:true,trim:true,maxlength:100},
+        descripcion:{type:String,required:false,trim:true,maxlength:500},
+        categoria:{type:String,required:true,trim:true},
+        precio_compra:{type:Number,required:true,min:0},
+        precio_venta:{type:Number,required:true,min:0},
+        stock:{type:Number,required:true,min:0,default:0},
+        fecha_caducidad:{type:Date,required:false},
+        proveedor_id:{type:mongoose.Schema.Types.ObjectId,ref:'Proveedor',required:true}
+    },{
+        timestamps: true
+    });
+    // Modelo
+    const Producto=mongoose.model("Producto",productosSchema,"productos");
+    //RUTAS 
+    // Obtener todos los productos
+app.get("/productos", async (req, res) => {
+    try {
+        const productos = await Producto.find().populate("proveedor_id");// traer informacion dl otro esquema
+        res.json(productos);
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener los productos",
+            error: error.message
+        });
+    }
+});
 
+// Obtener un producto por ID
+app.get("/productos/:id", async (req, res) => {
+    try {
+        const producto = await Producto.findById(req.params.id).populate("proveedor_id");
 
+        if (!producto) {
+            return res.status(404).json({
+                mensaje: "Producto no encontrado"
+            });
+        }
+
+        res.json(producto);
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener el producto",
+            error: error.message
+        });
+    }
+});
+
+// Registrar un producto
+app.post("/productos", async (req, res) => {
+    try {
+        const {
+            codigo_barras,
+            nombre,
+            descripcion,
+            categoria,
+            precio_compra,
+            precio_venta,
+            stock,
+            fecha_caducidad,
+            proveedor_id
+        } = req.body;
+
+        if (
+            !nombre ||
+            !categoria ||
+            precio_compra === undefined ||
+            precio_venta === undefined ||
+            stock === undefined ||
+            !proveedor_id
+        ) {
+            return res.status(400).json({
+                mensaje: "Faltan datos obligatorios del producto"
+            });
+        }
+
+        const nuevoProducto = new Producto({
+            codigo_barras,
+            nombre,
+            descripcion,
+            categoria,
+            precio_compra,
+            precio_venta,
+            stock,
+            fecha_caducidad,
+            proveedor_id
+        });
+
+        const productoGuardado = await nuevoProducto.save();
+
+        res.status(201).json({
+            mensaje: "Producto registrado correctamente",
+            producto: productoGuardado
+        });
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al guardar el producto",
+            error: error.message
+        });
+    }
+});
+
+// Actualizar un producto
+app.put("/productos/:id", async (req, res) => {
+    try {
+        const {
+            codigo_barras,
+            nombre,
+            descripcion,
+            categoria,
+            precio_compra,
+            precio_venta,
+            stock,
+            fecha_caducidad,
+            proveedor_id
+        } = req.body;
+
+        if (
+            !nombre ||
+            !categoria ||
+            precio_compra === undefined ||
+            precio_venta === undefined ||
+            stock === undefined ||
+            !proveedor_id
+        ) {
+            return res.status(400).json({
+                mensaje: "Faltan datos obligatorios del producto"
+            });
+        }
+
+        const productoActualizado = await Producto.findByIdAndUpdate(
+            req.params.id,
+            {
+                codigo_barras,
+                nombre,
+                descripcion,
+                categoria,
+                precio_compra,
+                precio_venta,
+                stock,
+                fecha_caducidad,
+                proveedor_id
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!productoActualizado) {
+            return res.status(404).json({
+                mensaje: "Producto no encontrado"
+            });
+        }
+
+        res.json({
+            mensaje: "Producto actualizado correctamente",
+            producto: productoActualizado
+        });
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al actualizar el producto",
+            error: error.message
+        });
+    }
+});
+
+// Eliminar un producto
+app.delete("/productos/:id", async (req, res) => {
+    try {
+        const productoEliminado = await Producto.findByIdAndDelete(req.params.id);
+
+        if (!productoEliminado) {
+            return res.status(404).json({
+                mensaje: "Producto no encontrado"
+            });
+        }
+
+        res.json({
+            mensaje: "Producto eliminado correctamente",
+            producto: productoEliminado
+        });
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al eliminar el producto",
+            error: error.message
+        });
+    }
+});
 
 ///***********************ESQUEMA DE  VENTAS*************************
 
