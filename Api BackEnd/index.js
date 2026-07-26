@@ -358,7 +358,190 @@ app.delete("/empleados/:id", async (req, res) => {
 
 ////***********************ESQUEMA DE  CLIENTES***********************
 
+const clienteSchema = new mongoose.Schema({
 
+    nombre: {
+        type: String,
+        required: true
+    },
+
+    telefono: {
+        type: String,
+        required: true
+    },
+
+    correo: {
+        type: String,
+        required: true
+    },
+
+    direccion: {
+        type: String,
+        required: true
+    },
+
+    fechaRegistro: {
+        type: Date,
+        default: Date.now
+    }
+
+});
+
+const Cliente = mongoose.model("Cliente", clienteSchema);
+
+
+//*********************** RUTAS DE CLIENTES ***********************
+
+
+// CONSULTAR TODOS LOS CLIENTES
+app.get("/clientes", async (req, res) => {
+
+    try {
+
+        const clientes = await Cliente.find();
+
+        res.json(clientes);
+
+    } catch (error) {
+
+        res.status(500).json({
+            mensaje: "Error al obtener los clientes",
+            error: error.message
+        });
+
+    }
+
+});
+
+// CONSULTAR UN CLIENTE POR ID
+app.get("/clientes/:id", async (req, res) => {
+
+    try {
+
+        const cliente = await Cliente.findById(req.params.id);
+
+        if (!cliente) {
+
+            return res.status(404).json({
+                mensaje: "Cliente no encontrado"
+            });
+
+        }
+
+        res.json(cliente);
+
+    } catch (error) {
+
+        res.status(500).json({
+            mensaje: "Error al obtener el cliente",
+            error: error.message
+        });
+
+    }
+
+});
+
+// AGREGAR CLIENTE
+app.post("/clientes", async (req, res) => {
+
+    try {
+
+        const nuevoCliente = new Cliente({
+
+            nombre: req.body.nombre,
+            telefono: req.body.telefono,
+            correo: req.body.correo,
+            direccion: req.body.direccion,
+            fechaRegistro: req.body.fechaRegistro
+
+        });
+
+        const clienteGuardado = await nuevoCliente.save();
+
+        res.status(201).json({
+            mensaje: "Cliente agregado correctamente",
+            cliente: clienteGuardado
+        });
+
+    } catch (error) {
+
+        res.status(400).json({
+            mensaje: "Error al agregar el cliente",
+            error: error.message
+        });
+
+    }
+
+});
+
+// ACTUALIZAR CLIENTE
+app.put("/clientes/:id", async (req, res) => {
+
+    try {
+
+        const clienteActualizado = await Cliente.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!clienteActualizado) {
+
+            return res.status(404).json({
+                mensaje: "Cliente no encontrado"
+            });
+
+        }
+
+        res.json({
+            mensaje: "Cliente actualizado correctamente",
+            cliente: clienteActualizado
+        });
+
+    } catch (error) {
+
+        res.status(400).json({
+            mensaje: "Error al actualizar el cliente",
+            error: error.message
+        });
+
+    }
+
+});
+
+// ELIMINAR CLIENTE
+app.delete("/clientes/:id", async (req, res) => {
+
+    try {
+
+        const clienteEliminado = await Cliente.findByIdAndDelete(req.params.id);
+
+        if (!clienteEliminado) {
+
+            return res.status(404).json({
+                mensaje: "Cliente no encontrado"
+            });
+
+        }
+
+        res.json({
+            mensaje: "Cliente eliminado correctamente",
+            cliente: clienteEliminado
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            mensaje: "Error al eliminar el cliente",
+            error: error.message
+        });
+
+    }
+
+});
 
 ////***********************ESQUEMA DE PROVEEDORES**********************
 
