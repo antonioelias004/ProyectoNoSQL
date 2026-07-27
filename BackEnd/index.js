@@ -979,20 +979,26 @@ app.delete("/productos/:id", async (req, res) => {
     res.send("API del Proyecto NoSQL");
     });
 
- mongoose.connect(
-    "mongodb+srv://root:root@servidorprueba.6wjsj0y.mongodb.net/TiendaDB",
-    { serverSelectionTimeoutMS: 10000 }
-)
-.then(() => console.log("Conectado correctamente a MongoDB"))
-.catch((error) => {
-    console.error("No se pudo conectar con MongoDB con la base de Datos TiendaDB");
-    console.error(error.message);
-});
-
-if (process.env.NODE_ENV !== "production") {
-    app.listen(PORT, () => {
-        console.log("Servidor iniciado en http://localhost:" + PORT);
-    });
-}
-
-module.exports = app;
+async function iniciarServidor() {
+       try {
+           await mongoose.connect(
+               "mongodb+srv://root:root@servidorprueba.6wjsj0y.mongodb.net/TiendaDB",
+               {
+                   serverSelectionTimeoutMS: 10000
+               }
+           );
+   
+           console.log("Conectado correctamente a MongoDB");
+   
+           app.listen(PORT, () => {
+               console.log(
+                   "Servidor iniciado en http://localhost:" + PORT
+               );
+           });
+       } catch (error) {
+           console.error("No se pudo conectar con MongoDB con la base de Datos TiendaDB");
+           console.error(error.message);
+       }
+   }
+   
+   iniciarServidor();
