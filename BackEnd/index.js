@@ -972,6 +972,97 @@ app.delete("/productos/:id", async (req, res) => {
 
 ///***********************ESQUEMA DE  VENTAS*************************
 
+//Esquema de items 
+const itemSchema = new mongoose.Schema(
+    {
+        producto_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Producto",           
+            required: true
+        },
+        nombre: {                      
+            type: String,
+            required: true,
+            trim: true
+        },
+        cantidad: {
+            type: Number,
+            required: true,
+            min: 1
+        },
+        precio: {                      
+            type: Number,
+            required: true,
+            min: 0
+        },
+        subtotal: {             
+            type: Number,
+            required: true,
+            min: 0
+        }
+    },
+    //Para que no le ponga ID al subdocumento
+    { _id: false }
+);
+
+// Esquema principal de la venta.
+const ventaSchema = new mongoose.Schema(
+    {
+        folio: {                       
+            type: String,
+            required: true,
+            unique: true,              
+            trim: true
+        },
+        fecha: {
+            type: Date,
+            required: true,
+            default: Date.now
+        },
+
+        empleado_id: {                 
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Empleados",         
+            required: true
+        },
+        cliente_id: {                  
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Cliente",           
+            required: true
+        },
+        cliente_nombre: {              
+            type: String,
+            required: true,
+            trim: true
+        },
+        items: {                       
+            type: [itemSchema],
+            required: true
+        },
+        total: {                       
+            type: Number,
+            required: true,
+            min: 0
+        },
+        metodo_pago: {
+            type: String,
+            required: true,
+            enum: ["efectivo", "tarjeta", "transferencia"]  
+        },
+        estatus: {
+            type: String,
+            required: true,
+            enum: ["completada", "cancelada"],
+            default: "completada"
+        }
+    },
+    {
+        timestamps: true 
+    }
+);
+
+// MODELO
+const Venta = mongoose.model("Venta", ventaSchema, "ventas");
 
 
 */
