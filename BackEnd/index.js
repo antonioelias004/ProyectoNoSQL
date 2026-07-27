@@ -1064,6 +1064,24 @@ const ventaSchema = new mongoose.Schema(
 // MODELO
 const Venta = mongoose.model("Venta", ventaSchema, "ventas");
 
+// Get de ventas
+app.get("/ventas", async (req, res) => {
+    try {
+
+        const ventas = await Venta.find()
+            .select("folio fecha cliente_nombre total metodo_pago estatus")
+            .sort({ fecha: -1 });
+
+        res.json(ventas);
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener las ventas",
+            error: error.message
+        });
+    }
+});
+
 
 */
     app.get("/", (req, res) => {
