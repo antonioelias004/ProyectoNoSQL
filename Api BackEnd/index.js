@@ -9,16 +9,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-//CONEXION A LA BASE DE DATOS 
-mongoose.connect(
-        "mongodb+srv://root:root@servidorprueba.6wjsj0y.mongodb.net/"
-    )
-    .then(() => {
-        console.log("Conectado correctamente a MongoDB");
-    })
-    .catch((error) => {
-        console.error("Error al conectar con MongoDB:", error);
-});
+
 //// ***********************ESQUEMA DE EMPLEADOS**********************
 const empleadosSchema = new mongoose.Schema(
     {
@@ -557,7 +548,7 @@ app.delete("/clientes/:id", async (req, res) => {
         precio_venta:{type:Number,required:true,min:0},
         stock:{type:Number,required:true,min:0,default:0},
         fecha_caducidad:{type:Date,required:false},
-        proveedor_id:{type:mongoose.Schema.Types.ObjectId,ref:'Proveedor',required:true}
+        proveedor_id:{type:mongoose.Schema.Types.ObjectId,ref:'Proveedores',required:true}
     },{
         timestamps: true
     });
@@ -759,8 +750,27 @@ app.delete("/productos/:id", async (req, res) => {
     });
 
 
-    app.listen(PORT, () => {
-    console.log(
-        "Servidor iniciado en http://localhost:" + PORT
-    );
-});
+   
+   async function iniciarServidor() {
+       try {
+           await mongoose.connect(
+               "mongodb+srv://root:root@servidorprueba.6wjsj0y.mongodb.net/TiendaDB",
+               {
+                   serverSelectionTimeoutMS: 10000
+               }
+           );
+   
+           console.log("Conectado correctamente a MongoDB");
+   
+           app.listen(PORT, () => {
+               console.log(
+                   "Servidor iniciado en http://localhost:" + PORT
+               );
+           });
+       } catch (error) {
+           console.error("No se pudo conectar con MongoDB con la base de Datos TiendaDB");
+           console.error(error.message);
+       }
+   }
+   
+   iniciarServidor();
