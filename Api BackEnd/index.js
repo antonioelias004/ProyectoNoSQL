@@ -973,22 +973,10 @@ app.delete("/productos/:id", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
     app.get("/", (req, res) => {
     res.send("API del Proyecto NoSQL");
     });
 
-
-   
    async function iniciarServidor() {
        try {
            await mongoose.connect(
