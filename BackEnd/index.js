@@ -1082,6 +1082,27 @@ app.get("/ventas", async (req, res) => {
     }
 });
 
+app.get("/ventas/:id", async (req, res) => {
+    try {
+
+        const venta = await Venta.findById(req.params.id)
+            .populate("empleado_id", "nombre puesto")
+            .populate("cliente_id", "nombre correo");
+
+        if (!venta) {
+            return res.status(404).json({ mensaje: "Venta no encontrada" });
+        }
+
+        res.json(venta);
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener la venta",
+            error: error.message
+        });
+    }
+});
+
 
 */
     app.get("/", (req, res) => {
