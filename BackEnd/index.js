@@ -86,6 +86,7 @@ const Empleados = mongoose.model(
 );
 
 // OBTENER TODOS LOS EMPLEADOS
+/* 
 app.get("/empleados", async (req, res) => {
     try {
 
@@ -972,7 +973,7 @@ app.delete("/productos/:id", async (req, res) => {
 
 
 
-
+*/
     app.get("/", (req, res) => {
     res.send("API del Proyecto NoSQL");
     });
