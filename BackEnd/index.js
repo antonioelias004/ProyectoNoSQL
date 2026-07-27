@@ -11,6 +11,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 //// ***********************ESQUEMA DE EMPLEADOS**********************
+/*
 const empleadosSchema = new mongoose.Schema(
     {
         nombre: {
@@ -84,7 +85,7 @@ const Empleados = mongoose.model(
     empleadosSchema,
     "empleados"
 );
-
+*/
 // OBTENER TODOS LOS EMPLEADOS
 /* 
 app.get("/empleados", async (req, res) => {
