@@ -142,34 +142,8 @@
                     <p>Agrega productos directamente a la venta.</p>
                 </div>
 
-                <div class="productos-grid">
-                    <div class="producto-card">
-                        <img src="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=150&auto=format&fit=crop" alt="Coca Cola">
-                        <h3>Coca Cola 600ml</h3>
-                        <strong>$25.00</strong>
-                        <button onclick="agregarVenta('Coca Cola 600ml', 25)">Agregar</button>
-                    </div>
-
-                    <div class="producto-card">
-                        <img src="https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=150&auto=format&fit=crop" alt="Papas">
-                        <h3>Papas Sabritas</h3>
-                        <strong>$20.00</strong>
-                        <button onclick="agregarVenta('Papas Sabritas', 20)">Agregar</button>
-                    </div>
-
-                    <div class="producto-card">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQq5PVEgHvIKVlAPXeCUIAkKuanqTou-x3RgPKaUaPMKB8sCin3ukeneQK&s=10" alt="Agua">
-                        <h3>Agua Natural</h3>
-                        <strong>$15.00</strong>
-                        <button onclick="agregarVenta('Agua Natural', 15)">Agregar</button>
-                    </div>
-
-                    <div class="producto-card">
-                        <img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=150&auto=format&fit=crop" alt="Galletas">
-                        <h3>Galletas</h3>
-                        <strong>$18.00</strong>
-                        <button onclick="agregarVenta('Galletas', 18)">Agregar</button>
-                    </div>
+                <div class="productos-grid" id="productos-destacados">
+                    <p style="text-align:center; width:100%;">No hay productos registrados todavía.</p>
                 </div>
             </div>
         </section>
@@ -405,18 +379,9 @@
     <script>
         // Base de Datos Local
         let db = {
-            productos: JSON.parse(localStorage.getItem('pos_productos')) || [
-                { id: 1, nombre: 'Coca Cola 600ml', precio: 25.00, stock: 50, categoria: 'Bebidas' },
-                { id: 2, nombre: 'Papas Sabritas', precio: 20.00, stock: 30, categoria: 'Botanas' },
-                { id: 3, nombre: 'Agua Natural', precio: 15.00, stock: 40, categoria: 'Bebidas' },
-                { id: 4, nombre: 'Galletas', precio: 18.00, stock: 25, categoria: 'Galletas' }
-            ],
-            clientes: JSON.parse(localStorage.getItem('pos_clientes')) || [
-                { id: 1, nombre: 'Juan Pérez', telefono: '555-0192' }
-            ],
-            proveedores: JSON.parse(localStorage.getItem('pos_proveedores')) || [
-                { id: 1, empresa: 'Distribuidora A', contacto: '555-8833' }
-            ],
+            productos: JSON.parse(localStorage.getItem('pos_productos')) || [],
+            clientes: JSON.parse(localStorage.getItem('pos_clientes')) || [],
+            proveedores: JSON.parse(localStorage.getItem('pos_proveedores')) || [],
             empleados: JSON.parse(localStorage.getItem('pos_empleados')) || [
                 { id: 1, nombre: 'Carlos López', cargo: 'Cajero' }
             ],
@@ -454,6 +419,26 @@
             renderizarClientes();
             renderizarProveedores();
             renderizarEmpleados();
+            renderizarDestacados();
+        }
+
+        // PRODUCTOS DESTACADOS (INICIO)
+        function renderizarDestacados() {
+            const cont = document.getElementById('productos-destacados');
+            if (db.productos.length === 0) {
+                cont.innerHTML = '<p style="text-align:center; width:100%;">No hay productos registrados todavía.</p>';
+                return;
+            }
+            cont.innerHTML = '';
+            db.productos.slice(0, 4).forEach(p => {
+                cont.innerHTML += `
+                    <div class="producto-card">
+                        <h3>${p.nombre}</h3>
+                        <strong>$${Number(p.precio).toFixed(2)}</strong>
+                        <button onclick="agregarVenta('${p.nombre}', ${p.precio})">Agregar</button>
+                    </div>
+                `;
+            });
         }
 
         // PRODUCTOS
