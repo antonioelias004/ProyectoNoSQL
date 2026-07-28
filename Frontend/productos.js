@@ -46,7 +46,7 @@ export async function agregarProducto(producto) {
 // Actualizar producto
 export async function actualizarProducto(id, producto) {
     const respuesta = await fetch(`${API_URL}/productos/${id}`, {
-        method: "PUT", // O "PATCH" según lo configuraste en tu backend
+        method: "PUT", 
         headers: {
             "Content-Type": "application/json"
         },
