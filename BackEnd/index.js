@@ -972,6 +972,136 @@ app.delete("/productos/:id", async (req, res) => {
 
 ///***********************ESQUEMA DE  VENTAS*************************
 
+//Esquema de items 
+const itemSchema = new mongoose.Schema(
+    {
+        producto_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Producto",           
+            required: true
+        },
+        nombre: {                      
+            type: String,
+            required: true,
+            trim: true
+        },
+        cantidad: {
+            type: Number,
+            required: true,
+            min: 1
+        },
+        precio: {                      
+            type: Number,
+            required: true,
+            min: 0
+        },
+        subtotal: {             
+            type: Number,
+            required: true,
+            min: 0
+        }
+    },
+    //Para que no le ponga ID al subdocumento
+    { _id: false }
+);
+
+// Esquema principal de la venta.
+const ventaSchema = new mongoose.Schema(
+    {
+        folio: {                       
+            type: String,
+            required: true,
+            unique: true,              
+            trim: true
+        },
+        fecha: {
+            type: Date,
+            required: true,
+            default: Date.now
+        },
+
+        empleado_id: {                 
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Empleados",         
+            required: true
+        },
+        cliente_id: {                  
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Cliente",           
+            required: true
+        },
+        cliente_nombre: {              
+            type: String,
+            required: true,
+            trim: true
+        },
+        items: {                       
+            type: [itemSchema],
+            required: true
+        },
+        total: {                       
+            type: Number,
+            required: true,
+            min: 0
+        },
+        metodo_pago: {
+            type: String,
+            required: true,
+            enum: ["efectivo", "tarjeta", "transferencia"]  
+        },
+        estatus: {
+            type: String,
+            required: true,
+            enum: ["completada", "cancelada"],
+            default: "completada"
+        }
+    },
+    {
+        timestamps: true 
+    }
+);
+
+// MODELO
+const Venta = mongoose.model("Venta", ventaSchema, "ventas");
+
+// Get de ventas
+app.get("/ventas", async (req, res) => {
+    try {
+
+        const ventas = await Venta.find()
+            .select("folio fecha cliente_nombre total metodo_pago estatus")
+            .sort({ fecha: -1 });
+
+        res.json(ventas);
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener las ventas",
+            error: error.message
+        });
+    }
+});
+
+app.get("/ventas/:id", async (req, res) => {
+    try {
+
+        const venta = await Venta.findById(req.params.id)
+            .populate("empleado_id", "nombre puesto")
+            .populate("cliente_id", "nombre correo");
+
+        if (!venta) {
+            return res.status(404).json({ mensaje: "Venta no encontrada" });
+        }
+
+        res.json(venta);
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener la venta",
+            error: error.message
+        });
+    }
+});
 
 
 */
