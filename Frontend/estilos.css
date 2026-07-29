@@ -6,17 +6,19 @@
    ========================================================== */
 
 :root {
-    /* ---- Marca (verde) ---- */
-    --verde-50:  #f0fdf4;
-    --verde-100: #dcfce7;
-    --verde-200: #bbf7d0;
-    --verde-300: #86efac;
-    --verde-400: #4ade80;
-    --verde-500: #22c55e;
-    --verde-600: #16a34a;
-    --verde-700: #15803d;
-    --verde-800: #166534;
-    --verde-900: #14532d;
+    /* ---- Marca (naranja claro) ----
+       Los nombres siguen siendo --verde-* para no tocar el resto del
+       archivo; lo que cambio son los valores. */
+    --verde-50:  #fff7ed;
+    --verde-100: #ffedd5;
+    --verde-200: #fed7aa;
+    --verde-300: #fdba74;
+    --verde-400: #fb923c;
+    --verde-500: #f97316;
+    --verde-600: #ea580c;
+    --verde-700: #c2410c;
+    --verde-800: #9a3412;
+    --verde-900: #7c2d12;
 
     /* ---- Neutros ---- */
     --gris-0:   #ffffff;
@@ -152,7 +154,7 @@ button { cursor: pointer; }
     border-radius: var(--r-md);
     background: linear-gradient(140deg, var(--verde-500), var(--verde-700));
     color: #fff; font-size: 18px;
-    box-shadow: 0 6px 16px rgba(22,163,74,.35);
+    box-shadow: 0 6px 16px rgba(234,88,12,.35);
 }
 .logo h2 { font-size: 16px; color: var(--gris-900); }
 .logo span { font-size: 11px; color: var(--texto-suave); letter-spacing: .06em; text-transform: uppercase; }
@@ -232,7 +234,7 @@ button { cursor: pointer; }
     background: var(--verde-600); color: #fff; font-weight: 600;
     transition: background var(--rapido), box-shadow var(--rapido);
 }
-.btn-search:hover { background: var(--verde-700); box-shadow: 0 4px 12px rgba(22,163,74,.28); }
+.btn-search:hover { background: var(--verde-700); box-shadow: 0 4px 12px rgba(234,88,12,.28); }
 
 .usuario { display: flex; align-items: center; gap: var(--e3); margin-left: auto; }
 .usuario > i { font-size: 30px; color: var(--gris-300); }
@@ -293,7 +295,7 @@ button { cursor: pointer; }
     display: grid; place-items: center;
     border-radius: var(--r-md); color: #fff; font-size: 18px;
 }
-.icono.verde   { background: linear-gradient(140deg, var(--verde-500), var(--verde-700)); box-shadow: 0 6px 14px rgba(22,163,74,.30); }
+.icono.verde   { background: linear-gradient(140deg, var(--verde-500), var(--verde-700)); box-shadow: 0 6px 14px rgba(234,88,12,.30); }
 .icono.morado  { background: linear-gradient(140deg, #a78bfa, #7c3aed); box-shadow: 0 6px 14px rgba(139,92,246,.30); }
 .icono.naranja { background: linear-gradient(140deg, #fb923c, #ea580c); box-shadow: 0 6px 14px rgba(249,115,22,.30); }
 .icono.rosa    { background: linear-gradient(140deg, #f472b6, #db2777); box-shadow: 0 6px 14px rgba(236,72,153,.30); }
@@ -384,7 +386,7 @@ button { cursor: pointer; }
 .btn-principal:hover { filter: brightness(.92); }
 .btn-principal:active { transform: scale(.98); }
 
-.verde-bg   { background: var(--verde-700); box-shadow: 0 4px 12px rgba(22,163,74,.26); }
+.verde-bg   { background: var(--verde-700); box-shadow: 0 4px 12px rgba(234,88,12,.26); }
 .morado-bg  { background: var(--morado);   box-shadow: 0 4px 12px rgba(124,58,237,.26); }
 .naranja-bg { background: var(--naranja);  box-shadow: 0 4px 12px rgba(194,65,12,.26); }
 .azul-bg    { background: var(--azul);     box-shadow: 0 4px 12px rgba(37,99,235,.26); }
@@ -537,7 +539,7 @@ tbody td small { display: block; font-size: 11.5px; color: var(--texto-tenue); m
 
 .login-marca {
     position: relative; overflow: hidden;
-    background: linear-gradient(150deg, #052e16 0%, var(--verde-800) 55%, #0f5132 100%);
+    background: linear-gradient(150deg, #db2777 0%, var(--verde-600) 55%, var(--verde-500) 100%);
     color: var(--verde-50);
     display: flex; align-items: center;
     padding: var(--e12) 60px;
@@ -545,9 +547,9 @@ tbody td small { display: block; font-size: 11.5px; color: var(--texto-tenue); m
 .login-marca-fondo {
     position: absolute; inset: 0; pointer-events: none;
     background-image:
-        radial-gradient(circle at 18% 22%, rgba(74,222,128,.30), transparent 45%),
-        radial-gradient(circle at 82% 78%, rgba(20,83,45,.55), transparent 50%),
-        repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 2px, transparent 2px 22px);
+        radial-gradient(circle at 18% 20%, rgba(251,113,133,.40), transparent 48%),
+        radial-gradient(circle at 84% 82%, rgba(251,146,60,.45), transparent 52%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 2px, transparent 2px 22px);
 }
 .login-marca-contenido { position: relative; max-width: 460px; }
 .login-marca-logo {
@@ -617,7 +619,7 @@ tbody td small { display: block; font-size: 11.5px; color: var(--texto-tenue); m
     font-size: 15.5px; font-weight: 600;
     transition: background var(--rapido), transform var(--rapido), box-shadow var(--rapido);
 }
-.btn-login:hover:not(:disabled) { background: var(--verde-700); box-shadow: 0 8px 22px rgba(22,163,74,.32); }
+.btn-login:hover:not(:disabled) { background: var(--verde-700); box-shadow: 0 8px 22px rgba(234,88,12,.32); }
 .btn-login:active:not(:disabled) { transform: scale(.985); }
 .btn-login:disabled { opacity: .6; cursor: not-allowed; }
 .btn-login i { font-size: 13px; transition: transform var(--rapido); }
