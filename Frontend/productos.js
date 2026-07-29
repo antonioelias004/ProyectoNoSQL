@@ -2,73 +2,38 @@
 //                         PRODUCTOS
 // ==========================================================
 
-import { API_URL } from './config.js';
+import { apiFetch } from './auth.js';
 
-// Obtener todos los productos
+// Obtener todos los productos (el backend incluye el proveedor con populate)
 export async function obtenerProductos() {
-    const respuesta = await fetch(`${API_URL}/productos`);
-
-    if (!respuesta.ok) {
-        throw new Error("Error al obtener la lista de productos");
-    }
-
-    return await respuesta.json();
+    return await apiFetch('/productos');
 }
 
 // Obtener un solo producto por ID
 export async function obtenerProductoPorId(id) {
-    const respuesta = await fetch(`${API_URL}/productos/${id}`);
-
-    if (!respuesta.ok) {
-        throw new Error("Error al consultar el producto");
-    }
-
-    return await respuesta.json();
+    return await apiFetch(`/productos/${id}`);
 }
 
 // Agregar un nuevo producto
 export async function agregarProducto(producto) {
-    const respuesta = await fetch(`${API_URL}/productos`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+    const datos = await apiFetch('/productos', {
+        method: 'POST',
         body: JSON.stringify(producto)
     });
-
-    if (!respuesta.ok) {
-        throw new Error("Error al guardar el nuevo producto");
-    }
-
-    return await respuesta.json();
+    return datos.producto;
 }
 
 // Actualizar producto
 export async function actualizarProducto(id, producto) {
-    const respuesta = await fetch(`${API_URL}/productos/${id}`, {
-        method: "PUT", 
-        headers: {
-            "Content-Type": "application/json"
-        },
+    const datos = await apiFetch(`/productos/${id}`, {
+        method: 'PUT',
         body: JSON.stringify(producto)
     });
-
-    if (!respuesta.ok) {
-        throw new Error("Error al actualizar el producto");
-    }
-
-    return await respuesta.json();
+    return datos.producto;
 }
 
 // Eliminar un producto por su ID
 export async function eliminarProducto(id) {
-    const respuesta = await fetch(`${API_URL}/productos/${id}`, {
-        method: "DELETE"
-    });
-
-    if (!respuesta.ok) {
-        throw new Error("Error al eliminar el producto");
-    }
-
-    return await respuesta.json();
+    const datos = await apiFetch(`/productos/${id}`, { method: 'DELETE' });
+    return datos.producto;
 }

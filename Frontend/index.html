@@ -14,10 +14,12 @@
 
 <body>
 
+  <div class="app">
+
     <!-- ==========================
             SIDEBAR
     ========================== -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="logo">
             <div class="logo-icon">
                 <i class="fa-solid fa-store"></i>
@@ -30,29 +32,35 @@
 
         <nav class="menu">
             <button class="menu-item activo" onclick="mostrarSeccion('inicio', this)">
-                <i class="fa-solid fa-house"></i> Inicio
+                <i class="fa-solid fa-house"></i> <span>Inicio</span>
             </button>
             <button class="menu-item" onclick="mostrarSeccion('productos', this)">
-                <i class="fa-solid fa-box"></i> Productos
+                <i class="fa-solid fa-box"></i> <span>Productos</span>
             </button>
             <button class="menu-item" onclick="mostrarSeccion('clientes', this)">
-                <i class="fa-solid fa-users"></i> Clientes
+                <i class="fa-solid fa-users"></i> <span>Clientes</span>
             </button>
             <button class="menu-item" onclick="mostrarSeccion('proveedores', this)">
-                <i class="fa-solid fa-truck"></i> Proveedores
+                <i class="fa-solid fa-truck"></i> <span>Proveedores</span>
             </button>
             <button class="menu-item" onclick="mostrarSeccion('empleados', this)">
-                <i class="fa-solid fa-user-tie"></i> Empleados
+                <i class="fa-solid fa-user-tie"></i> <span>Empleados</span>
             </button>
             <button class="menu-item" onclick="mostrarSeccion('ventas', this)">
-                <i class="fa-solid fa-cart-shopping"></i> Ventas
+                <i class="fa-solid fa-cart-shopping"></i> <span>Ventas</span>
             </button>
         </nav>
 
-        <div class="qr-card">
-            <h3>Código QR</h3>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MiTiendita" alt="QR System">
-            <p>Acceso rápido al sistema</p>
+        <div class="sesion-card">
+            <div class="sesion-avatar" id="sesion-inicial" aria-hidden="true">—</div>
+            <div class="sesion-datos">
+                <strong id="sesion-nombre">—</strong>
+                <span id="sesion-puesto">Sin sesión</span>
+            </div>
+            <div class="sesion-turno">
+                <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                <span id="sesion-hora">--:--</span>
+            </div>
         </div>
     </aside>
 
@@ -63,6 +71,9 @@
 
         <!-- TOPBAR -->
         <header class="topbar">
+            <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <div class="search-box">
                 <i class="fa-solid fa-search"></i>
                 <input type="text" id="busqueda-global" placeholder="Buscar producto por nombre o categoría...">
@@ -72,10 +83,13 @@
             <div class="usuario">
                 <i class="fa-solid fa-circle-user"></i>
                 <div>
-                    <strong>Administrador</strong>
+                    <strong>—</strong>
                     <small>Mi Tiendita</small>
                 </div>
             </div>
+            <button class="btn-salir" onclick="salir()" title="Cerrar sesión">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>Salir</span>
+            </button>
         </header>
 
         <!-- ==========================
@@ -159,7 +173,7 @@
             </div>
 
             <div class="formulario-card">
-                <h2>Nuevo producto</h2>
+                <h2 id="titulo-form-producto">Nuevo producto</h2>
                 <form id="form-producto">
                     <input type="hidden" id="producto-id">
                     <div class="form-grid">
@@ -168,19 +182,50 @@
                             <input type="text" id="producto-nombre" placeholder="Ejemplo: Refresco" required>
                         </div>
                         <div class="campo">
-                            <label>Precio ($)</label>
-                            <input type="number" step="0.01" id="producto-precio" placeholder="0.00" required>
-                        </div>
-                        <div class="campo">
-                            <label>Stock</label>
-                            <input type="number" id="producto-stock" placeholder="Cantidad" required>
+                            <label>Código de barras <small>(opcional, vacío en graneles)</small></label>
+                            <input type="text" id="producto-codigo" placeholder="7501120304050">
                         </div>
                         <div class="campo">
                             <label>Categoría</label>
-                            <input type="text" id="producto-categoria" placeholder="Ejemplo: Bebidas" required>
+                            <input type="text" id="producto-categoria" placeholder="Ejemplo: Bebidas" required list="lista-categorias">
+                            <datalist id="lista-categorias"></datalist>
+                        </div>
+                        <div class="campo">
+                            <label>Unidad de venta</label>
+                            <select id="producto-unidad" required>
+                                <option value="pieza">Pieza (cantidades enteras)</option>
+                                <option value="kg">Kilogramo (admite decimales)</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Precio de compra ($)</label>
+                            <input type="number" step="0.01" min="0" id="producto-precio-compra" placeholder="0.00" required>
+                        </div>
+                        <div class="campo">
+                            <label>Precio de venta ($)</label>
+                            <input type="number" step="0.01" min="0" id="producto-precio-venta" placeholder="0.00" required>
+                        </div>
+                        <div class="campo">
+                            <label>Stock</label>
+                            <input type="number" step="0.001" min="0" id="producto-stock" placeholder="Cantidad" required>
+                        </div>
+                        <div class="campo">
+                            <label>Proveedor</label>
+                            <select id="producto-proveedor" required>
+                                <option value="">Selecciona un proveedor...</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Fecha de caducidad <small>(opcional)</small></label>
+                            <input type="date" id="producto-caducidad">
+                        </div>
+                        <div class="campo">
+                            <label>URL de la imagen <small>(opcional)</small></label>
+                            <input type="url" id="producto-imagen" placeholder="https://ejemplo.com/foto.jpg">
                         </div>
                     </div>
-                    <button class="btn-principal verde-bg" type="submit">Guardar producto</button>
+                    <button class="btn-principal verde-bg" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar producto</button>
+                    <button class="btn-secundario" type="button" id="cancelar-producto" style="display:none;">Cancelar edición</button>
                 </form>
             </div>
 
@@ -192,11 +237,12 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Imagen</th>
                             <th>Producto</th>
-                            <th>Precio</th>
-                            <th>Stock</th>
                             <th>Categoría</th>
+                            <th>Precio venta</th>
+                            <th>Stock</th>
+                            <th>Proveedor</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -216,19 +262,29 @@
             </div>
 
             <div class="formulario-card">
-                <h2>Nuevo cliente</h2>
+                <h2 id="titulo-form-cliente">Nuevo cliente</h2>
                 <form id="form-cliente">
+                    <input type="hidden" id="cliente-id">
                     <div class="form-grid">
                         <div class="campo">
                             <label>Nombre completo</label>
                             <input id="cliente-nombre" type="text" placeholder="Nombre cliente" required>
                         </div>
                         <div class="campo">
+                            <label>Correo electrónico</label>
+                            <input id="cliente-email" type="email" placeholder="cliente@correo.com" required>
+                        </div>
+                        <div class="campo">
                             <label>Teléfono</label>
-                            <input id="cliente-telefono" type="text" placeholder="Teléfono" required>
+                            <input id="cliente-telefono" type="text" placeholder="311-000-0000" required>
+                        </div>
+                        <div class="campo">
+                            <label>Dirección <small>(opcional)</small></label>
+                            <input id="cliente-direccion" type="text" placeholder="Calle, ciudad, estado">
                         </div>
                     </div>
-                    <button class="btn-principal morado-bg" type="submit">Guardar cliente</button>
+                    <button class="btn-principal morado-bg" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar cliente</button>
+                    <button class="btn-secundario" type="button" id="cancelar-cliente" style="display:none;">Cancelar edición</button>
                 </form>
             </div>
 
@@ -237,9 +293,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Nombre</th>
+                            <th>Correo</th>
                             <th>Teléfono</th>
+                            <th>Registro</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -259,19 +316,29 @@
             </div>
 
             <div class="formulario-card">
-                <h2>Nuevo proveedor</h2>
+                <h2 id="titulo-form-proveedor">Nuevo proveedor</h2>
                 <form id="form-proveedor">
+                    <input type="hidden" id="proveedor-id">
                     <div class="form-grid">
                         <div class="campo">
                             <label>Empresa</label>
-                            <input id="proveedor-empresa" type="text" placeholder="Nombre empresa" required>
+                            <input id="proveedor-nombre" type="text" placeholder="Razón social" required>
                         </div>
                         <div class="campo">
-                            <label>Contacto</label>
-                            <input id="proveedor-contacto" type="text" placeholder="Teléfono / Correo" required>
+                            <label>Correo electrónico</label>
+                            <input id="proveedor-email" type="email" placeholder="ventas@empresa.com" required>
+                        </div>
+                        <div class="campo">
+                            <label>Teléfono</label>
+                            <input id="proveedor-telefono" type="text" placeholder="311-000-0000" required>
+                        </div>
+                        <div class="campo">
+                            <label>Dirección</label>
+                            <input id="proveedor-direccion" type="text" placeholder="Calle, ciudad, estado" required>
                         </div>
                     </div>
-                    <button class="btn-principal naranja-bg" type="submit">Guardar proveedor</button>
+                    <button class="btn-principal naranja-bg" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar proveedor</button>
+                    <button class="btn-secundario" type="button" id="cancelar-proveedor" style="display:none;">Cancelar edición</button>
                 </form>
             </div>
 
@@ -280,9 +347,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Empresa</th>
-                            <th>Contacto</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -302,19 +370,62 @@
             </div>
 
             <div class="formulario-card">
-                <h2>Registrar empleado</h2>
+                <h2 id="titulo-form-empleado">Registrar empleado</h2>
                 <form id="form-empleado">
+                    <input type="hidden" id="empleado-id">
                     <div class="form-grid">
                         <div class="campo">
                             <label>Nombre</label>
                             <input id="empleado-nombre" type="text" placeholder="Nombre del empleado" required>
                         </div>
                         <div class="campo">
-                            <label>Cargo</label>
-                            <input id="empleado-cargo" type="text" placeholder="Ejemplo: Cajero" required>
+                            <label>Correo electrónico</label>
+                            <input id="empleado-email" type="email" placeholder="empleado@tienda.com" required>
+                        </div>
+                        <div class="campo">
+                            <label>Teléfono</label>
+                            <input id="empleado-telefono" type="text" placeholder="311-000-0000" required>
+                        </div>
+                        <div class="campo">
+                            <label>Puesto</label>
+                            <select id="empleado-puesto" required>
+                                <option value="Vendedor">Vendedor</option>
+                                <option value="Gerente">Gerente</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Turno</label>
+                            <select id="empleado-turno" required>
+                                <option value="Matutino">Matutino</option>
+                                <option value="Vespertino">Vespertino</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Usuario <small>(para iniciar sesión)</small></label>
+                            <input id="empleado-usuario" type="text" placeholder="jperez" required>
+                        </div>
+                        <div class="campo">
+                            <label>Contraseña <small id="ayuda-password">(mínimo 6 caracteres)</small></label>
+                            <input id="empleado-password" type="password" placeholder="••••••••" minlength="6">
+                        </div>
+                        <div class="campo">
+                            <label>Salario ($)</label>
+                            <input id="empleado-salario" type="number" step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="campo">
+                            <label>Fecha de ingreso</label>
+                            <input id="empleado-ingreso" type="date" required>
+                        </div>
+                        <div class="campo">
+                            <label>Estado</label>
+                            <select id="empleado-activo" required>
+                                <option value="true">Activo</option>
+                                <option value="false">Inactivo</option>
+                            </select>
                         </div>
                     </div>
-                    <button class="btn-principal azul-bg" type="submit">Guardar empleado</button>
+                    <button class="btn-principal azul-bg" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar empleado</button>
+                    <button class="btn-secundario" type="button" id="cancelar-empleado" style="display:none;">Cancelar edición</button>
                 </form>
             </div>
 
@@ -323,9 +434,11 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Nombre</th>
-                            <th>Cargo</th>
+                            <th>Puesto</th>
+                            <th>Turno</th>
+                            <th>Usuario</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -346,19 +459,50 @@
 
             <div class="venta-panel">
                 <h2>Nueva venta</h2>
+
+                <div class="form-grid">
+                    <div class="campo">
+                        <label>Cliente</label>
+                        <select id="venta-cliente" required>
+                            <option value="">Selecciona un cliente...</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>Atiende</label>
+                        <select id="venta-empleado" required>
+                            <option value="">Selecciona un empleado...</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>Método de pago</label>
+                        <select id="venta-metodo" required>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>Agregar producto</label>
+                        <select id="venta-producto">
+                            <option value="">Busca un producto...</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="carrito">
                     <table>
                         <thead>
                             <tr>
                                 <th>Producto</th>
                                 <th>Cantidad</th>
-                                <th>Precio</th>
-                                <th>Eliminar</th>
+                                <th>Precio unit.</th>
+                                <th>Subtotal</th>
+                                <th>Quitar</th>
                             </tr>
                         </thead>
                         <tbody id="carrito">
                             <tr>
-                                <td colspan="4" style="text-align:center;">No hay productos agregados</td>
+                                <td colspan="5" style="text-align:center;">No hay productos agregados</td>
                             </tr>
                         </tbody>
                     </table>
@@ -366,343 +510,124 @@
 
                 <div class="venta-total">
                     <h2>Total: <span id="total-venta">$0.00</span></h2>
-                    <button onclick="cobrarVenta()" class="btn-principal rosa-bg">Cobrar venta</button>
+                    <button id="btn-cobrar" class="btn-principal rosa-bg"><i class="fa-solid fa-cash-register"></i> Cobrar venta</button>
                 </div>
+            </div>
+
+            <div class="tabla-card">
+                <h2>Historial de ventas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Pago</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-ventas"></tbody>
+                </table>
             </div>
         </section>
 
     </main>
 
-    <!-- ==========================================================================
-            LÓGICA JAVASCRIPT DEL SISTEMA
-    ========================================================================== -->
-    <script>
-        // Base de Datos Local
-        let db = {
-            productos: JSON.parse(localStorage.getItem('pos_productos')) || [],
-            clientes: JSON.parse(localStorage.getItem('pos_clientes')) || [],
-            proveedores: JSON.parse(localStorage.getItem('pos_proveedores')) || [],
-            empleados: JSON.parse(localStorage.getItem('pos_empleados')) || [
-                { id: 1, nombre: 'Carlos López', cargo: 'Cajero' }
-            ],
-            ventas: JSON.parse(localStorage.getItem('pos_ventas')) || []
-        };
+  </div><!-- /.app -->
 
-        let carrito = [];
+  <div class="drawer-fondo" id="drawer-fondo" hidden></div>
 
-        // Cambiar entre secciones
-        function mostrarSeccion(idSeccion, boton) {
-            document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('activa'));
-            document.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('activo'));
+    <!-- ==========================
+            PANTALLA DE LOGIN
+    ========================== -->
+    <div id="pantalla-login" class="login-overlay">
+        <div class="login-split">
 
-            document.getElementById(idSeccion).classList.add('activa');
-            if (boton) boton.classList.add('activo');
-        }
-
-        // Guardar y refrescar
-        function guardarDB() {
-            localStorage.setItem('pos_productos', JSON.stringify(db.productos));
-            localStorage.setItem('pos_clientes', JSON.stringify(db.clientes));
-            localStorage.setItem('pos_proveedores', JSON.stringify(db.proveedores));
-            localStorage.setItem('pos_empleados', JSON.stringify(db.empleados));
-            localStorage.setItem('pos_ventas', JSON.stringify(db.ventas));
-            actualizarVistas();
-        }
-
-        function actualizarVistas() {
-            document.getElementById('contador-productos').innerText = db.productos.length;
-            document.getElementById('contador-clientes').innerText = db.clientes.length;
-            document.getElementById('contador-proveedores').innerText = db.proveedores.length;
-            document.getElementById('contador-ventas').innerText = db.ventas.length;
-
-            renderizarProductos();
-            renderizarClientes();
-            renderizarProveedores();
-            renderizarEmpleados();
-            renderizarDestacados();
-        }
-
-        // PRODUCTOS DESTACADOS (INICIO)
-        function renderizarDestacados() {
-            const cont = document.getElementById('productos-destacados');
-            if (db.productos.length === 0) {
-                cont.innerHTML = '<p style="text-align:center; width:100%;">No hay productos registrados todavía.</p>';
-                return;
-            }
-            cont.innerHTML = '';
-            db.productos.slice(0, 4).forEach(p => {
-                cont.innerHTML += `
-                    <div class="producto-card">
-                        <h3>${p.nombre}</h3>
-                        <strong>$${Number(p.precio).toFixed(2)}</strong>
-                        <button onclick="agregarVenta('${p.nombre}', ${p.precio})">Agregar</button>
+            <!-- Panel de marca -->
+            <aside class="login-marca">
+                <div class="login-marca-fondo" aria-hidden="true"></div>
+                <div class="login-marca-contenido">
+                    <div class="login-marca-logo">
+                        <i class="fa-solid fa-store" aria-hidden="true"></i>
+                        <span>Mi Tiendita</span>
                     </div>
-                `;
-            });
-        }
 
-        // PRODUCTOS
-        function renderizarProductos(filtro = '') {
-            const tbody = document.getElementById('tabla-productos');
-            tbody.innerHTML = '';
+                    <h2>Tu tienda,<br>bajo control.</h2>
+                    <p>Inventario, ventas y clientes en un solo lugar.</p>
 
-            const filtrados = db.productos.filter(p => 
-                p.nombre.toLowerCase().includes(filtro.toLowerCase()) || 
-                p.categoria.toLowerCase().includes(filtro.toLowerCase())
-            );
+                    <ul class="login-marca-puntos">
+                        <li><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Inventario por pieza o a granel</li>
+                        <li><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Punto de venta con descuento de stock</li>
+                        <li><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Acceso por usuario y contraseña</li>
+                    </ul>
 
-            filtrados.forEach(p => {
-                let claseEstado = 'disponible';
-                let txtEstado = 'Disponible';
-                if (p.stock === 0) { claseEstado = 'agotado'; txtEstado = 'Agotado'; }
-                else if (p.stock <= 5) { claseEstado = 'bajo'; txtEstado = 'Stock Bajo'; }
+                    <p class="login-marca-pie">Tepic, Nayarit</p>
+                </div>
+            </aside>
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${p.id}</td>
-                        <td><strong>${p.nombre}</strong></td>
-                        <td>$${Number(p.precio).toFixed(2)}</td>
-                        <td><span class="estado ${claseEstado}">${p.stock} (${txtEstado})</span></td>
-                        <td>${p.categoria}</td>
-                        <td>
-                            <button class="btn-editar" onclick="editarProducto(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-eliminar" onclick="eliminarProducto(${p.id})"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
+            <!-- Panel del formulario -->
+            <div class="login-panel">
+                <form id="form-login" class="login-form" novalidate>
+                    <div class="login-form-cabecera">
+                        <h1>Bienvenido de vuelta</h1>
+                        <p>Ingresa con tu cuenta de empleado.</p>
+                    </div>
 
-        document.getElementById('form-producto').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const id = document.getElementById('producto-id').value;
-            const nombre = document.getElementById('producto-nombre').value;
-            const precio = parseFloat(document.getElementById('producto-precio').value);
-            const stock = parseInt(document.getElementById('producto-stock').value);
-            const categoria = document.getElementById('producto-categoria').value;
+                    <div class="campo-login">
+                        <label for="login-usuario">Usuario</label>
+                        <div class="input-icono">
+                            <i class="fa-solid fa-user" aria-hidden="true"></i>
+                            <input id="login-usuario" name="usuario" type="text"
+                                   placeholder="eramirez" required
+                                   autocomplete="username" autocapitalize="none" spellcheck="false">
+                        </div>
+                    </div>
 
-            if (id) {
-                const index = db.productos.findIndex(p => p.id == id);
-                db.productos[index] = { id: parseInt(id), nombre, precio, stock, categoria };
-            } else {
-                const nuevoId = db.productos.length > 0 ? Math.max(...db.productos.map(p => p.id)) + 1 : 1;
-                db.productos.push({ id: nuevoId, nombre, precio, stock, categoria });
-            }
+                    <div class="campo-login">
+                        <label for="login-password">Contraseña</label>
+                        <div class="input-icono">
+                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                            <input id="login-password" name="password" type="password"
+                                   placeholder="Tu contraseña" required
+                                   autocomplete="current-password">
+                            <button type="button" id="ver-password" class="btn-ojo"
+                                    aria-label="Mostrar contraseña" aria-pressed="false">
+                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
 
-            this.reset();
-            document.getElementById('producto-id').value = '';
-            guardarDB();
-        });
+                    <p id="login-error" class="login-error" role="alert" aria-live="assertive"></p>
 
-        function editarProducto(id) {
-            const p = db.productos.find(item => item.id === id);
-            if (p) {
-                document.getElementById('producto-id').value = p.id;
-                document.getElementById('producto-nombre').value = p.nombre;
-                document.getElementById('producto-precio').value = p.precio;
-                document.getElementById('producto-stock').value = p.stock;
-                document.getElementById('producto-categoria').value = p.categoria;
-            }
-        }
+                    <button type="submit" class="btn-login" id="btn-login">
+                        <span>Entrar</span>
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
 
-        function eliminarProducto(id) {
-            if (confirm('¿Eliminar producto?')) {
-                db.productos = db.productos.filter(p => p.id !== id);
-                guardarDB();
-            }
-        }
+                    <p class="login-nota">
+                        ¿Olvidaste tu contraseña? Pídele al gerente que la restablezca.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
 
-        document.getElementById('buscar-producto').addEventListener('input', (e) => {
-            renderizarProductos(e.target.value);
-        });
+    <!-- Detalle de una venta -->
+    <div id="modal-venta" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-venta-titulo">Detalle de venta</h2>
+                <button type="button" id="cerrar-modal-venta" class="btn-cerrar">&times;</button>
+            </div>
+            <div id="modal-venta-cuerpo"></div>
+        </div>
+    </div>
 
-        // CLIENTES
-        function renderizarClientes() {
-            const tbody = document.getElementById('tabla-clientes');
-            tbody.innerHTML = '';
-            db.clientes.forEach(c => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${c.id}</td>
-                        <td>${c.nombre}</td>
-                        <td>${c.telefono}</td>
-                        <td><button class="btn-eliminar" onclick="eliminarCliente(${c.id})"><i class="fa-solid fa-trash"></i></button></td>
-                    </tr>
-                `;
-            });
-        }
+    <!-- Notificaciones -->
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
-        document.getElementById('form-cliente').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nombre = document.getElementById('cliente-nombre').value;
-            const telefono = document.getElementById('cliente-telefono').value;
-            const nuevoId = db.clientes.length > 0 ? Math.max(...db.clientes.map(c => c.id)) + 1 : 1;
-            
-            db.clientes.push({ id: nuevoId, nombre, telefono });
-            this.reset();
-            guardarDB();
-        });
-
-        function eliminarCliente(id) {
-            db.clientes = db.clientes.filter(c => c.id !== id);
-            guardarDB();
-        }
-
-        // PROVEEDORES
-        function renderizarProveedores() {
-            const tbody = document.getElementById('tabla-proveedores');
-            tbody.innerHTML = '';
-            db.proveedores.forEach(p => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${p.id}</td>
-                        <td>${p.empresa}</td>
-                        <td>${p.contacto}</td>
-                        <td><button class="btn-eliminar" onclick="eliminarProveedor(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        document.getElementById('form-proveedor').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const empresa = document.getElementById('proveedor-empresa').value;
-            const contacto = document.getElementById('proveedor-contacto').value;
-            const nuevoId = db.proveedores.length > 0 ? Math.max(...db.proveedores.map(p => p.id)) + 1 : 1;
-            
-            db.proveedores.push({ id: nuevoId, empresa, contacto });
-            this.reset();
-            guardarDB();
-        });
-
-        function eliminarProveedor(id) {
-            db.proveedores = db.proveedores.filter(p => p.id !== id);
-            guardarDB();
-        }
-
-        // EMPLEADOS
-        function renderizarEmpleados() {
-            const tbody = document.getElementById('tabla-empleados');
-            tbody.innerHTML = '';
-            db.empleados.forEach(emp => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${emp.id}</td>
-                        <td>${emp.nombre}</td>
-                        <td>${emp.cargo}</td>
-                        <td><button class="btn-eliminar" onclick="eliminarEmpleado(${emp.id})"><i class="fa-solid fa-trash"></i></button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        document.getElementById('form-empleado').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nombre = document.getElementById('empleado-nombre').value;
-            const cargo = document.getElementById('empleado-cargo').value;
-            const nuevoId = db.empleados.length > 0 ? Math.max(...db.empleados.map(e => e.id)) + 1 : 1;
-            
-            db.empleados.push({ id: nuevoId, nombre, cargo });
-            this.reset();
-            guardarDB();
-        });
-
-        function eliminarEmpleado(id) {
-            db.empleados = db.empleados.filter(e => e.id !== id);
-            guardarDB();
-        }
-
-        // CARRITO Y PUNTO DE VENTA
-        function agregarVenta(nombre, precio) {
-            const item = carrito.find(i => i.nombre === nombre);
-            if (item) {
-                item.cantidad++;
-            } else {
-                carrito.push({ nombre, precio, cantidad: 1 });
-            }
-            renderizarCarrito();
-            mostrarSeccion('ventas', document.querySelectorAll('.menu-item')[5]);
-        }
-
-        function cambiarCantidad(index, delta) {
-            carrito[index].cantidad += delta;
-            if (carrito[index].cantidad <= 0) carrito.splice(index, 1);
-            renderizarCarrito();
-        }
-
-        function eliminarDelCarrito(index) {
-            carrito.splice(index, 1);
-            renderizarCarrito();
-        }
-
-        function renderizarCarrito() {
-            const tbody = document.getElementById('carrito');
-            tbody.innerHTML = '';
-
-            if (carrito.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay productos agregados</td></tr>';
-                document.getElementById('total-venta').innerText = '$0.00';
-                return;
-            }
-
-            let total = 0;
-            carrito.forEach((item, index) => {
-                const subtotal = item.precio * item.cantidad;
-                total += subtotal;
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${item.nombre}</strong></td>
-                        <td>
-                            <button style="padding: 2px 8px; cursor:pointer;" onclick="cambiarCantidad(${index}, -1)">-</button>
-                            <span style="margin: 0 8px;">${item.cantidad}</span>
-                            <button style="padding: 2px 8px; cursor:pointer;" onclick="cambiarCantidad(${index}, 1)">+</button>
-                        </td>
-                        <td>$${subtotal.toFixed(2)}</td>
-                        <td><button class="btn-eliminar" onclick="eliminarDelCarrito(${index})"><i class="fa-solid fa-xmark"></i></button></td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('total-venta').innerText = `$${total.toFixed(2)}`;
-        }
-
-        function cobrarVenta() {
-            if (carrito.length === 0) {
-                alert("El carrito está vacío.");
-                return;
-            }
-
-            const totalCalculado = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
-            db.ventas.push({
-                id: db.ventas.length + 1,
-                fecha: new Date().toLocaleString(),
-                total: totalCalculado
-            });
-
-            carrito = [];
-            renderizarCarrito();
-            guardarDB();
-            alert("¡Venta realizada con éxito!");
-        }
-
-        // BÚSQUEDA GLOBAL TOPBAR
-        document.getElementById('busqueda-global').addEventListener('input', function(e) {
-            const val = e.target.value.toLowerCase().trim();
-            if (!val) return;
-
-            const coincide = db.productos.some(p => p.nombre.toLowerCase().includes(val) || p.categoria.toLowerCase().includes(val));
-            if (coincide) {
-                mostrarSeccion('productos', document.querySelectorAll('.menu-item')[1]);
-                document.getElementById('buscar-producto').value = val;
-                renderizarProductos(val);
-            }
-        });
-
-        // Inicializar vistas al cargar
-        document.addEventListener('DOMContentLoaded', () => {
-            actualizarVistas();
-        });
-    </script>
     <script type="module" src="app.js"></script>
 </body>
 
