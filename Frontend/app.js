@@ -212,7 +212,23 @@ function esqueleto(columnas, filas = 4) {
     }
     return html;
 }
-
+// Esqueleto de carga para el inventario en tarjetas
+function esqueletoProductos(cuantas = 8) {
+    let html = '';
+    for (let i = 0; i < cuantas; i++) {
+        html += `
+            <div class="producto-card-admin esqueleto">
+                <div class="foto"></div>
+                <div class="cuerpo">
+                    <span style="width:70%;height:14px;"></span>
+                    <span style="width:40%;"></span>
+                    <span style="width:55%;"></span>
+                    <span style="width:90%;height:20px;"></span>
+                </div>
+            </div>`;
+    }
+    return html;
+}
 // Estado vacío con icono y mensaje
 function vacio(columnas, icono, mensaje) {
     return `<tr class="fila-vacia"><td colspan="${columnas}">
@@ -363,13 +379,16 @@ async function cargarTodo() {
 
 function mostrarEsqueletos() {
     const tablas = [
-        ['tabla-productos', 7], ['tabla-clientes', 5], ['tabla-proveedores', 5],
+        ['tabla-clientes', 5], ['tabla-proveedores', 5],
         ['tabla-empleados', 6], ['tabla-ventas', 7]
     ];
     tablas.forEach(([id, cols]) => {
         const t = $(id);
         if (t && t.children.length === 0) t.innerHTML = esqueleto(cols);
     });
+
+    const grid = $('tabla-productos');
+    if (grid && grid.children.length === 0) grid.innerHTML = esqueletoProductos();
 }
 
 function actualizarContadores() {
@@ -415,7 +434,6 @@ function llenarSelectores() {
 // ==========================================================
 //                       PRODUCTOS
 // ==========================================================
-
 function renderProductos(filtro = '') {
     const cuerpo = $('tabla-productos');
     const texto = filtro.toLowerCase();
@@ -426,8 +444,11 @@ function renderProductos(filtro = '') {
     );
 
     if (lista.length === 0) {
-        cuerpo.innerHTML = vacio(7, 'fa-box-open',
-            filtro ? `Ningún producto coincide con "${filtro}".` : 'Aún no hay productos registrados.');
+        cuerpo.innerHTML = `
+            <div class="vacio vacio-grid">
+                <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+                <p>${esc(filtro ? `Ningún producto coincide con "${filtro}".` : 'Aún no hay productos registrados.')}</p>
+            </div>`;
         return;
     }
 
@@ -440,22 +461,27 @@ function renderProductos(filtro = '') {
         const proveedor = p.proveedor_id && p.proveedor_id.nombre ? p.proveedor_id.nombre : '—';
 
         const img = p.imagen
-            ? `<img src="${esc(p.imagen)}" alt="${esc(p.nombre)}" class="mini-foto">`
+            ? `<img src="${esc(p.imagen)}" alt="${esc(p.nombre)}">`
             : '<span class="sin-foto"><i class="fa-solid fa-image"></i></span>';
 
         return `
-            <tr>
-                <td data-col="Imagen">${img}</td>
-                <td data-col="Producto"><strong>${esc(p.nombre)}</strong><br><small>${esc(p.codigo_barras || 'sin código')}</small></td>
-                <td data-col="Categoría">${esc(p.categoria)}</td>
-                <td data-col="Precio">${money(p.precio_venta)} <small>/ ${unidad}</small></td>
-                <td data-col="Stock"><span class="estado ${clase}">${p.stock} ${unidad} (${etiqueta})</span></td>
-                <td data-col="Proveedor">${esc(proveedor)}</td>
-                <td>
-                    <button class="btn-editar" onclick="editarProducto('${esc(p._id)}')"><i class="fa-solid fa-pen"></i></button>
+            <div class="producto-card-admin">
+                <div class="foto">${img}</div>
+                <div class="cuerpo">
+                    <h3>${esc(p.nombre)}</h3>
+                    <small class="codigo">${esc(p.codigo_barras || 'sin código')}</small>
+                    <p class="categoria">${esc(p.categoria)}</p>
+                    <div class="precio-stock">
+                        <strong>${money(p.precio_venta)} <small>/ ${unidad}</small></strong>
+                        <span class="estado ${clase}">${p.stock} ${unidad} (${etiqueta})</span>
+                    </div>
+                    <p class="proveedor"><i class="fa-solid fa-truck" aria-hidden="true"></i> ${esc(proveedor)}</p>
+                </div>
+                <div class="acciones">
+                    <button class="btn-editar" onclick="editarProducto('${esc(p._id)}')"><i class="fa-solid fa-pen"></i> Editar</button>
                     <button class="btn-eliminar" onclick="borrarProducto('${esc(p._id)}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>`;
+                </div>
+            </div>`;
     }).join('');
 }
 
