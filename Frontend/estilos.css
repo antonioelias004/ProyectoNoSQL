@@ -94,6 +94,10 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Varias clases usan display:flex/grid, que le gana al [hidden] del
+   navegador. Esta regla hace que ocultar por JS siempre funcione. */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {

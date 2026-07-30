@@ -152,6 +152,35 @@ function pintarUsuario() {
         .toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 }
 
+// ----------------------------------------------------------
+// Permisos por puesto
+// Solo el Gerente ve Proveedores y Empleados. Cualquier otro
+// puesto se queda con Inicio, Productos, Clientes y Ventas.
+// ----------------------------------------------------------
+
+function esGerente() {
+    const empleado = obtenerEmpleado();
+    return empleado ? empleado.puesto === 'Gerente' : false;
+}
+
+function aplicarPermisos() {
+    const gerente = esGerente();
+
+    document.querySelectorAll('[data-solo-gerente]').forEach(el => {
+        el.hidden = !gerente;
+    });
+
+    // Si quedo parado en una seccion que ya no le toca ver
+    // (por ejemplo, salio un gerente y entro un vendedor), lo
+    // regresamos al inicio.
+    if (!gerente) {
+        const activa = document.querySelector('.seccion.activa');
+        if (activa && (activa.id === 'proveedores' || activa.id === 'empleados')) {
+            window.mostrarSeccion('inicio', document.querySelectorAll('.menu-item')[0]);
+        }
+    }
+}
+
 function mostrarErrorLogin(mensaje) {
     const error = $('login-error');
     error.textContent = mensaje || '';
@@ -197,6 +226,7 @@ $('form-login').addEventListener('submit', async (e) => {
         await iniciarSesion(usuario, password);
         ocultarLogin();
         pintarUsuario();
+        aplicarPermisos();
         await cargarTodo();
     } catch (err) {
         mostrarErrorLogin(err.message);
@@ -285,8 +315,15 @@ function llenarSelectores() {
     $('venta-cliente').innerHTML = '<option value="">Selecciona un cliente...</option>' +
         clientes.map(c => `<option value="${esc(c._id)}">${esc(c.nombre)}</option>`).join('');
 
+    // El gerente puede registrar la venta a nombre de cualquiera;
+    // un vendedor solo se ve a si mismo en la lista.
+    const yo = obtenerEmpleado();
+    const opcionesEmpleado = esGerente()
+        ? empleados.filter(e => e.activo !== false)
+        : empleados.filter(e => yo && e._id === yo._id);
+
     $('venta-empleado').innerHTML = '<option value="">Selecciona un empleado...</option>' +
-        empleados.filter(e => e.activo !== false)
+        opcionesEmpleado
             .map(e => `<option value="${esc(e._id)}">${esc(e.nombre)} — ${esc(e.puesto)}</option>`).join('');
 
     $('venta-producto').innerHTML = '<option value="">Busca un producto...</option>' +
@@ -296,7 +333,6 @@ function llenarSelectores() {
         }).join('');
 
     // Preseleccionar al empleado que inició sesión
-    const yo = obtenerEmpleado();
     if (yo && empleados.some(e => e._id === yo._id)) {
         $('venta-empleado').value = yo._id;
     }
@@ -1023,6 +1059,7 @@ window.addEventListener('resize', () => {
 if (haySesion()) {
     ocultarLogin();
     pintarUsuario();
+    aplicarPermisos();
     cargarTodo();
 } else {
     mostrarLogin();

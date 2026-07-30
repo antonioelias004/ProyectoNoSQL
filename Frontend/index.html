@@ -40,10 +40,10 @@
             <button class="menu-item" onclick="mostrarSeccion('clientes', this)">
                 <i class="fa-solid fa-users"></i> <span>Clientes</span>
             </button>
-            <button class="menu-item" onclick="mostrarSeccion('proveedores', this)">
+            <button class="menu-item" data-solo-gerente onclick="mostrarSeccion('proveedores', this)">
                 <i class="fa-solid fa-truck"></i> <span>Proveedores</span>
             </button>
-            <button class="menu-item" onclick="mostrarSeccion('empleados', this)">
+            <button class="menu-item" data-solo-gerente onclick="mostrarSeccion('empleados', this)">
                 <i class="fa-solid fa-user-tie"></i> <span>Empleados</span>
             </button>
             <button class="menu-item" onclick="mostrarSeccion('ventas', this)">
@@ -126,7 +126,7 @@
                     </div>
                 </div>
 
-                <div class="tarjeta">
+                <div class="tarjeta" data-solo-gerente>
                     <div class="icono naranja">
                         <i class="fa-solid fa-truck"></i>
                     </div>
