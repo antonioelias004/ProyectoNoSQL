@@ -6,4 +6,4 @@
 
 // Desarrollo local. Para producción: https://apimitiendita.vercel.app
 // (sin barra final: los módulos concatenan /clientes, /productos, etc.)
-export const API_URL = "http://localhost:3000";
+export const API_URL = "https://apimitiendita.vercel.app";
