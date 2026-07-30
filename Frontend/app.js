@@ -21,6 +21,9 @@ let empleados = [];
 let ventas = [];
 let carrito = [];
 
+// Punto de venta: relaciona la etiqueta mostrada en el buscador con su producto real
+const mapaProductosVenta = new Map();
+
 const $ = (id) => document.getElementById(id);
 
 // ----------------------------------------------------------
@@ -95,6 +98,106 @@ function aviso(mensaje, detalle = '') {
 function fallo(error) {
     console.error(error);
     toast('error', 'No se pudo completar', error.message || 'Ocurrió un error inesperado', 6500);
+}
+
+// ----------------------------------------------------------
+// Modal de confirmación / entrada de datos.
+// Reemplaza a confirm() y prompt() del navegador (que se ven
+// como "127.0.0.1 dice" y quedan pegados a una esquina).
+// ----------------------------------------------------------
+
+// Guarda la función para cancelar el modal actualmente abierto,
+// para que Escape o el clic afuera también lo puedan cerrar.
+let cerrarModalConfirmar = null;
+
+function abrirModalConfirmar({
+    titulo,
+    mensaje,
+    textoAceptar = 'Aceptar',
+    peligro = false,
+    conInput = false,
+    valorInicial = '',
+    tipoInput = 'text',
+    pasoInput,
+    minInput
+}) {
+    return new Promise((resolve) => {
+        const overlay = $('modal-confirmar');
+        const btnAceptar = $('confirmar-aceptar');
+        const btnCancelar = $('confirmar-cancelar');
+        const btnCerrar = $('cerrar-modal-confirmar');
+        const campoInput = $('confirmar-campo-input');
+        const input = $('confirmar-input');
+
+        $('confirmar-titulo').textContent = titulo;
+        $('confirmar-mensaje').textContent = mensaje;
+        btnAceptar.textContent = textoAceptar;
+        btnAceptar.className = 'btn-principal ' + (peligro ? 'btn-peligro-modal' : 'rosa-bg');
+
+        if (conInput) {
+            campoInput.style.display = '';
+            input.type = tipoInput;
+            if (pasoInput !== undefined) input.step = pasoInput; else input.removeAttribute('step');
+            if (minInput !== undefined) input.min = minInput; else input.removeAttribute('min');
+            input.value = valorInicial;
+        } else {
+            campoInput.style.display = 'none';
+        }
+
+        const terminar = (valor) => {
+            overlay.classList.remove('visible');
+            cerrarModalConfirmar = null;
+            btnAceptar.removeEventListener('click', onAceptar);
+            btnCancelar.removeEventListener('click', onCancelar);
+            btnCerrar.removeEventListener('click', onCancelar);
+            input.removeEventListener('keydown', onKeydown);
+            resolve(valor);
+        };
+
+        function onAceptar() { terminar(conInput ? input.value : true); }
+        function onCancelar() { terminar(conInput ? null : false); }
+        function onKeydown(e) {
+            if (e.key === 'Enter') { e.preventDefault(); onAceptar(); }
+        }
+
+        btnAceptar.addEventListener('click', onAceptar);
+        btnCancelar.addEventListener('click', onCancelar);
+        btnCerrar.addEventListener('click', onCancelar);
+        if (conInput) input.addEventListener('keydown', onKeydown);
+
+        cerrarModalConfirmar = onCancelar;
+
+        overlay.classList.add('visible');
+        setTimeout(() => {
+            if (conInput) { input.focus(); input.select(); }
+            else btnAceptar.focus();
+        }, 50);
+    });
+}
+
+// Sustituye confirm(mensaje). Devuelve true/false.
+function confirmarAccion(mensaje, opciones = {}) {
+    return abrirModalConfirmar({
+        titulo: opciones.titulo || 'Confirmar acción',
+        mensaje,
+        textoAceptar: opciones.textoAceptar || 'Aceptar',
+        peligro: opciones.peligro || false,
+        conInput: false
+    });
+}
+
+// Sustituye prompt(mensaje, valorInicial). Devuelve el texto o null si se canceló.
+function pedirValor(mensaje, valorInicial = '', opciones = {}) {
+    return abrirModalConfirmar({
+        titulo: opciones.titulo || 'Ingresa un valor',
+        mensaje,
+        textoAceptar: opciones.textoAceptar || 'Aceptar',
+        conInput: true,
+        valorInicial,
+        tipoInput: opciones.tipo || 'text',
+        pasoInput: opciones.step,
+        minInput: opciones.min
+    });
 }
 
 // Fila de carga (esqueleto) mientras llegan los datos
@@ -207,8 +310,12 @@ $('form-login').addEventListener('submit', async (e) => {
     }
 });
 
-window.salir = () => {
-    if (confirm('¿Cerrar sesión?')) {
+window.salir = async () => {
+    const ok = await confirmarAccion('¿Seguro que quieres cerrar tu sesión?', {
+        titulo: 'Cerrar sesión',
+        textoAceptar: 'Cerrar sesión'
+    });
+    if (ok) {
         cerrarSesion();
         window.location.reload();
     }
@@ -281,21 +388,24 @@ function llenarSelectores() {
     const categorias = [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort();
     $('lista-categorias').innerHTML = categorias.map(c => `<option value="${esc(c)}">`).join('');
 
-    // Punto de venta
-    $('venta-cliente').innerHTML = '<option value="">Selecciona un cliente...</option>' +
+    // Punto de venta: cliente es opcional
+    $('venta-cliente').innerHTML = '<option value="">Venta sin cliente registrado</option>' +
         clientes.map(c => `<option value="${esc(c._id)}">${esc(c.nombre)}</option>`).join('');
 
     $('venta-empleado').innerHTML = '<option value="">Selecciona un empleado...</option>' +
         empleados.filter(e => e.activo !== false)
             .map(e => `<option value="${esc(e._id)}">${esc(e.nombre)} — ${esc(e.puesto)}</option>`).join('');
 
-    $('venta-producto').innerHTML = '<option value="">Busca un producto...</option>' +
-        productos.map(p => {
-            const u = p.unidad === 'kg' ? 'kg' : 'pz';
-            return `<option value="${esc(p._id)}">${esc(p.nombre)} — ${money(p.precio_venta)}/${u} (stock ${p.stock})</option>`;
-        }).join('');
+    // Buscador dinámico de productos: por nombre o código de barras
+    mapaProductosVenta.clear();
+    $('lista-productos-venta').innerHTML = productos.map(p => {
+        const u = p.unidad === 'kg' ? 'kg' : 'pz';
+        const etiqueta = `${p.nombre} — ${money(p.precio_venta)}/${u} (stock ${p.stock})`;
+        mapaProductosVenta.set(etiqueta, p);
+        return `<option value="${esc(etiqueta)}"></option>`;
+    }).join('');
 
-    // Preseleccionar al empleado que inició sesión
+    // Quien atiende siempre es el empleado con la sesión iniciada (no se cambia)
     const yo = obtenerEmpleado();
     if (yo && empleados.some(e => e._id === yo._id)) {
         $('venta-empleado').value = yo._id;
@@ -438,7 +548,12 @@ window.editarProducto = (id) => {
 };
 
 window.borrarProducto = async (id) => {
-    if (!confirm('¿Eliminar este producto de la base de datos?')) return;
+    const ok = await confirmarAccion('¿Eliminar este producto de la base de datos? Esta acción no se puede deshacer.', {
+        titulo: 'Eliminar producto',
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!ok) return;
     try {
         await eliminarProducto(id);
         aviso('Producto eliminado');
@@ -522,7 +637,12 @@ window.editarCliente = (id) => {
 };
 
 window.borrarCliente = async (id) => {
-    if (!confirm('¿Eliminar este cliente de la base de datos?')) return;
+    const ok = await confirmarAccion('¿Eliminar este cliente de la base de datos? Esta acción no se puede deshacer.', {
+        titulo: 'Eliminar cliente',
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!ok) return;
     try {
         await eliminarCliente(id);
         aviso('Cliente eliminado');
@@ -606,7 +726,12 @@ window.editarProveedor = (id) => {
 };
 
 window.borrarProveedor = async (id) => {
-    if (!confirm('¿Eliminar este proveedor de la base de datos?')) return;
+    const ok = await confirmarAccion('¿Eliminar este proveedor de la base de datos? Esta acción no se puede deshacer.', {
+        titulo: 'Eliminar proveedor',
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!ok) return;
     try {
         await eliminarProveedor(id);
         aviso('Proveedor eliminado');
@@ -723,7 +848,12 @@ window.borrarEmpleado = async (id) => {
         aviso('No puedes eliminar tu propia cuenta mientras la usas');
         return;
     }
-    if (!confirm('¿Eliminar este empleado de la base de datos?')) return;
+    const ok = await confirmarAccion('¿Eliminar este empleado de la base de datos? Esta acción no se puede deshacer.', {
+        titulo: 'Eliminar empleado',
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!ok) return;
     try {
         await eliminarEmpleado(id);
         aviso('Empleado eliminado');
@@ -739,7 +869,7 @@ $('cancelar-empleado').addEventListener('click', limpiarFormEmpleado);
 //                  PUNTO DE VENTA (CARRITO)
 // ==========================================================
 
-window.agregarAlCarrito = (idProducto) => {
+window.agregarAlCarrito = async (idProducto) => {
     const p = productos.find(x => x._id === idProducto);
     if (!p) return;
 
@@ -747,7 +877,11 @@ window.agregarAlCarrito = (idProducto) => {
     const enCarrito = carrito.find(i => i._id === p._id);
 
     if (porKilo) {
-        const texto = prompt(`¿Cuántos kg de ${p.nombre}? (disponible: ${p.stock} kg)`, enCarrito ? enCarrito.cantidad : '1');
+        const texto = await pedirValor(
+            `¿Cuántos kg de ${p.nombre} quieres agregar? (disponible: ${p.stock} kg)`,
+            enCarrito ? enCarrito.cantidad : '1',
+            { titulo: 'Cantidad en kg', tipo: 'number', step: '0.01', min: '0.01', textoAceptar: 'Agregar' }
+        );
         if (texto === null) return;
         const kg = Number(String(texto).replace(',', '.'));
         if (!isFinite(kg) || kg <= 0) {
@@ -828,11 +962,41 @@ function renderCarrito() {
     $('total-venta').textContent = money(total);
 }
 
-$('venta-producto').addEventListener('change', (e) => {
-    if (e.target.value) {
-        agregarAlCarrito(e.target.value);
+const inputBuscarProducto = $('venta-buscar-producto');
+
+// Al elegir una opción del datalist (búsqueda por nombre), se agrega directo al carrito
+inputBuscarProducto.addEventListener('input', (e) => {
+    const valor = e.target.value;
+    const producto = mapaProductosVenta.get(valor);
+    if (producto) {
+        agregarAlCarrito(producto._id);
         e.target.value = '';
     }
+});
+
+// Escaneo de código de barras: el lector "escribe" el código y manda Enter solo
+inputBuscarProducto.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+
+    const valor = e.target.value.trim();
+    if (!valor) return;
+
+    const porCodigo = productos.find(p => p.codigo_barras && p.codigo_barras === valor);
+    if (porCodigo) {
+        agregarAlCarrito(porCodigo._id);
+        e.target.value = '';
+        return;
+    }
+
+    const porNombre = mapaProductosVenta.get(valor);
+    if (porNombre) {
+        agregarAlCarrito(porNombre._id);
+        e.target.value = '';
+        return;
+    }
+
+    aviso('No se encontró ningún producto con ese nombre o código de barras');
 });
 
 $('btn-cobrar').addEventListener('click', async () => {
@@ -841,12 +1005,11 @@ $('btn-cobrar').addEventListener('click', async () => {
         return;
     }
 
-    const clienteId = $('venta-cliente').value;
+    const clienteId = $('venta-cliente').value || null;
     const empleadoId = $('venta-empleado').value;
     const metodoPago = $('venta-metodo').value;
 
-    if (!clienteId) { aviso('Selecciona el cliente'); return; }
-    if (!empleadoId) { aviso('Selecciona quién atiende la venta'); return; }
+    if (!empleadoId) { aviso('No se detectó tu sesión, vuelve a iniciar sesión'); return; }
 
     const boton = $('btn-cobrar');
     boton.disabled = true;
@@ -933,7 +1096,12 @@ window.verVenta = async (id) => {
 };
 
 window.anularVenta = async (id) => {
-    if (!confirm('¿Cancelar esta venta? El stock se devolverá al inventario.')) return;
+    const ok = await confirmarAccion('¿Cancelar esta venta? El stock se devolverá al inventario.', {
+        titulo: 'Cancelar venta',
+        textoAceptar: 'Cancelar venta',
+        peligro: true
+    });
+    if (!ok) return;
     try {
         await cancelarVenta(id);
         aviso('Venta cancelada y stock devuelto');
@@ -944,7 +1112,12 @@ window.anularVenta = async (id) => {
 };
 
 window.borrarVenta = async (id) => {
-    if (!confirm('¿Eliminar esta venta? Si estaba completada, el stock se devolverá.')) return;
+    const ok = await confirmarAccion('¿Eliminar esta venta? Si estaba completada, el stock se devolverá. Esta acción no se puede deshacer.', {
+        titulo: 'Eliminar venta',
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!ok) return;
     try {
         await eliminarVenta(id);
         aviso('Venta eliminada');
@@ -957,6 +1130,10 @@ window.borrarVenta = async (id) => {
 $('cerrar-modal-venta').addEventListener('click', () => $('modal-venta').classList.remove('visible'));
 $('modal-venta').addEventListener('click', (e) => {
     if (e.target.id === 'modal-venta') $('modal-venta').classList.remove('visible');
+});
+
+$('modal-confirmar').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-confirmar' && cerrarModalConfirmar) cerrarModalConfirmar();
 });
 
 // ==========================================================
@@ -1004,6 +1181,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (sidebar.classList.contains('abierto')) cerrarMenu();
     $('modal-venta').classList.remove('visible');
+    if (cerrarModalConfirmar) cerrarModalConfirmar();
 });
 
 // Al navegar en móvil, el menú se cierra solo
