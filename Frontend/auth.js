@@ -39,24 +39,16 @@ export function cerrarSesion() {
 // ----------------------------------------------------------
 // Login
 // ----------------------------------------------------------
-
 export async function iniciarSesion(usuario, password) {
-    const respuesta = await fetch(`${API_URL}/login`, {
+    // apiFetch ya concatena API_URL, maneja los headers y captura los errores de forma segura
+    const datos = await apiFetch('/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuario, password })
     });
-
-    const datos = await respuesta.json();
-
-    if (!respuesta.ok) {
-        throw new Error(datos.mensaje || 'No se pudo iniciar sesión');
-    }
 
     guardarSesion(datos.token, datos.empleado);
     return datos.empleado;
 }
-
 // ----------------------------------------------------------
 // apiFetch: fetch con el token puesto automáticamente.
 // Todos los módulos CRUD lo usan en lugar de fetch().
