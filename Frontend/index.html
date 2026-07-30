@@ -98,7 +98,7 @@
         <section id="inicio" class="seccion activa">
             <div class="titulo-seccion">
                 <span class="etiqueta verde-texto">DASHBOARD</span>
-                <h1>Bienvenido al Sistema POS</h1>
+                <h1>Bienvenido al Sistema Mi Tiendita</h1>
                 <p>Administra productos, clientes y ventas fácilmente.</p>
             </div>
 
@@ -234,20 +234,7 @@
                     <h2>Inventario actual</h2>
                     <input type="text" id="buscar-producto" placeholder="Buscar producto en la tabla...">
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Imagen</th>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Precio venta</th>
-                            <th>Stock</th>
-                            <th>Proveedor</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-productos"></tbody>
-                </table>
+                <div class="productos-grid-admin" id="tabla-productos"></div>
             </div>
         </section>
 
@@ -462,14 +449,14 @@
 
                 <div class="form-grid">
                     <div class="campo">
-                        <label>Cliente</label>
-                        <select id="venta-cliente" required>
-                            <option value="">Selecciona un cliente...</option>
+                        <label>Cliente <small>(opcional)</small></label>
+                        <select id="venta-cliente">
+                            <option value="">Venta sin cliente registrado</option>
                         </select>
                     </div>
                     <div class="campo">
                         <label>Atiende</label>
-                        <select id="venta-empleado" required>
+                        <select id="venta-empleado" disabled required>
                             <option value="">Selecciona un empleado...</option>
                         </select>
                     </div>
@@ -482,10 +469,9 @@
                         </select>
                     </div>
                     <div class="campo">
-                        <label>Agregar producto</label>
-                        <select id="venta-producto">
-                            <option value="">Busca un producto...</option>
-                        </select>
+                        <label>Agregar producto <small>(nombre o código de barras)</small></label>
+                        <input type="text" id="venta-buscar-producto" list="lista-productos-venta" placeholder="Escribe el nombre o escanea el código de barras..." autocomplete="off">
+                        <datalist id="lista-productos-venta"></datalist>
                     </div>
                 </div>
 
@@ -622,6 +608,24 @@
                 <button type="button" id="cerrar-modal-venta" class="btn-cerrar">&times;</button>
             </div>
             <div id="modal-venta-cuerpo"></div>
+        </div>
+    </div>
+
+    <!-- Confirmaciones y valores (reemplaza confirm() y prompt() del navegador) -->
+    <div id="modal-confirmar" class="modal-overlay">
+        <div class="modal-card modal-confirmar-card">
+            <div class="modal-header">
+                <h2 id="confirmar-titulo">Confirmar acción</h2>
+                <button type="button" id="cerrar-modal-confirmar" class="btn-cerrar">&times;</button>
+            </div>
+            <p id="confirmar-mensaje" class="confirmar-mensaje"></p>
+            <div class="campo" id="confirmar-campo-input" style="display:none;">
+                <input type="text" id="confirmar-input">
+            </div>
+            <div class="confirmar-acciones">
+                <button type="button" id="confirmar-cancelar" class="btn-secundario">Cancelar</button>
+                <button type="button" id="confirmar-aceptar" class="btn-principal rosa-bg">Aceptar</button>
+            </div>
         </div>
     </div>
 
